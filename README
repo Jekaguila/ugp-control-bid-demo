@@ -1,1 +1,78 @@
+# Sistema de control de una UGP para un Programa BID (demostración con datos simulados)
+
+Repositorio de portafolio que muestra **cómo se planifica, controla, audita y reporta** un programa financiado por el BID desde una Unidad Gestora del Programa (UGP). Toma como caso el *Programa de Integración Académica y Comunitaria para Jóvenes en El Salvador* (Préstamo **6153/OC-ES** por US$100 M + Convenio no reembolsable **6154/GR-ES** por US$4 M, total **US$104 M**), según los Términos de Referencia de la plaza de Coordinador General de la UGP.
+
+> ⚠️ **Todos los datos son simulados** y la estructura de componentes es ilustrativa. Del TDR solo se tomaron montos, números de operación y condiciones de la consultoría. Este repositorio demuestra método y criterio; **no acredita experiencia previa** en proyectos BID ni reemplaza la evidencia documental. Ver [`docs/04`](docs/04_supuestos_limitaciones_y_datos_simulados.md).
+
+## Los cuatro pilares del TDR y dónde se resuelven
+
+| Pilar | Pregunta que responde | Herramientas |
+|---|---|---|
+| **1 · Planificación y control integral** | ¿Cómo van el avance físico y financiero, los indicadores, los hitos y los riesgos? | `P1_POA` (valor ganado: SPI/CPI), `P1_Avance_FF`, `P1_Resultados`, `P1_Riesgos`, `P2_Focalizacion` |
+| **2 · Gestión fiduciaria** | ¿Cómo va la ejecución, los desembolsos, las adquisiciones y las auditorías? | `F1`–`F6`: presupuesto/PEP, libro de gastos, anticipos y desembolsos, plan financiero, plan de adquisiciones, contratos, auditoría |
+| **3 · Cumplimiento normativo** | ¿Cumplo el contrato 6153/OC-ES, el MOP y las políticas del BID? | `N1_Cumplimiento` (matriz con alertas) |
+| **4 · Articular y reportar** | ¿Cómo coordino al equipo, al BID y entrego los informes? | `A1`–`A6`: equipo y RACI, misiones y compromisos, No Objeciones, interesados, calendario P1–P12, informe mensual automático |
+
+## Estructura del repositorio
+
+```text
+ugp-control-bid-demo/
+├── README.md
+├── LICENSE
+├── docs/
+│   ├── 01_resumen_tecnico_TDR.md                     Resumen técnico del TDR
+│   ├── 02_justificacion_herramientas_de_control.md   Por qué cada herramienta
+│   ├── 03_protocolo_de_control_y_escalamiento.md     Ciclo mensual, umbrales, trazabilidad TDR → hojas
+│   ├── 04_supuestos_limitaciones_y_datos_simulados.md
+│   └── img/                                          Capturas del dashboard
+├── herramientas_seguimiento/
+│   ├── UGP_Sistema_Integrado_de_Control.xlsx         25 hojas, 1.400+ fórmulas, 16 controles de integridad
+│   └── UGP_Formatos_de_Gestion.xlsx                  Acta, cambios (CCB), minuta, No Objeción, evaluación 3CV, incidentes, lecciones, cierre
+├── dashboard/
+│   ├── app.py                                        Aplicación Streamlit (6 pestañas)
+│   ├── mapa_focalizacion.py                          Mapa de focalización por departamento (HTML autónomo)
+│   ├── ugp/                                          Lectura del Excel, indicadores en pandas y gráficos
+│   ├── data/geo/departamentos_sv.geojson             Límites departamentales (Natural Earth, dominio público)
+│   └── tests/test_consistencia.py                    Python vs. Excel: 18 pruebas
+└── scripts/                                          Generadores reproducibles de los libros (datos con semilla fija)
+```
+
+## Cómo usarlo
+
+```bash
+# 1. Dashboard
+cd dashboard
+pip install -r requirements.txt
+streamlit run app.py                 # tablero interactivo
+python mapa_focalizacion.py          # genera mapa_focalizacion.html (opciones: --variable cobertura|inversion|brecha)
+python -m pytest -q                  # verifica que Python y Excel dan los mismos indicadores
+
+# 2. Reconstruir los Excel (opcional; requiere LibreOffice para calcular las fórmulas)
+bash scripts/reconstruir.sh
+```
+
+En el Excel: abrir `Tablero` para el resumen ejecutivo y `Controles` para confirmar «TODOS LOS CONTROLES OK». La hoja `LEEME` explica el código de colores (azul = dato ingresado; gris = fórmula) y el ciclo de cierre mensual.
+
+## Vista del dashboard
+
+| Resumen | Planificación y control |
+|---|---|
+| ![Resumen](docs/img/dashboard_01_resumen.png) | ![Planificación](docs/img/dashboard_02_planificacion.png) |
+| **Gestión fiduciaria** | **Mapa de focalización** |
+| ![Fiduciario](docs/img/dashboard_03_fiduciario.png) | ![Mapa](docs/img/dashboard_06_mapa.png) |
+
+## Decisiones de diseño
+
+- **Una fuente por dato:** la ejecución vive solo en el libro de gastos (`F2_Ejecucion`); todo lo demás se calcula desde allí.
+- **Parámetros visibles:** umbrales de semáforo, fecha de corte, mínimo de justificación de anticipos y pesos del índice están en la hoja `Parametros`.
+- **Doble verificación:** 16 controles dentro del Excel y 18 pruebas en Python que recalculan los indicadores de forma independiente.
+- **Alertas, no solo cifras:** cada hoja produce un estado que alimenta el `Tablero` y el informe mensual (P2–P11 del TDR).
+
+## Qué falta para usarlo en un Programa real
+
+Contrastar los umbrales con el Contrato y el MOP; construir la matriz de cumplimiento desde esos documentos; conectar los libros a los sistemas institucionales; definir control de acceso por rol; usar herramientas institucionales para el cronograma detallado.
+
+## Licencia y créditos
+
+Código y documentos bajo licencia MIT. Límites departamentales: Natural Earth (dominio público). Autora: Jessica Liset Martínez de Águila.
 
